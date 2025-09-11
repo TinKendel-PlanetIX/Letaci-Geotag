@@ -1,0 +1,3 @@
+D:/letaci_geotagging/build/CMakeFiles/Geotag.dir
+D:/letaci_geotagging/build/CMakeFiles/ALL_BUILD.dir
+D:/letaci_geotagging/build/CMakeFiles/ZERO_CHECK.dir

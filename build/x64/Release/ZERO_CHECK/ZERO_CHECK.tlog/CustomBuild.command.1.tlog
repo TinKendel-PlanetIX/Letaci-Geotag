@@ -1,0 +1,10 @@
+^D:\LETACI_GEOTAGGING\BUILD\CMAKEFILES\F834B78FC9BE66807273C4FFD8EA96E3\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/letaci_geotagging -BD:/letaci_geotagging/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/letaci_geotagging/build/Geotag.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
