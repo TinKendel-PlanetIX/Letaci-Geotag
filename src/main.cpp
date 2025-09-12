@@ -20,8 +20,8 @@ std::vector<std::string> split_csv(const std::string& line, char delimiter = ','
     while (std::getline(ss, token, delimiter))
     {
         // This is done so that there is no whitespace or tabs in the token
-        token.erase(0, token.find_first_not_of("\t\r\n"));
-        token.erase(token.find_last_not_of("\t\r\n") + 1);
+        token.erase(0, token.find_first_not_of(" \t\r\n"));
+        token.erase(token.find_last_not_of(" \t\r\n") + 1);
         result.push_back(token);
     }
 
@@ -69,6 +69,10 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    // Register namespaces
+    Exiv2::XmpProperties::registerNs("http://ns.drone-dji.com", "drone-dji");
+    Exiv2::XmpProperties::registerNs("http://pix4d.com/camera/1.0", "Camera");
+
     auto header_variables = split_csv(header_line, ',');
     // This holds the names of variables that are in the header of the csv
     // Example: file,	 lat,	 lon,	 altBaro,	 roll,	 pitch,	 yaw,	 time
@@ -89,14 +93,15 @@ int main(int argc, char* argv[])
             continue;
         }
         
-        std::string image_name = get_value(row, column_index, {"imagename", "file"});
-        std::string latitude   = get_value(row, column_index, {"x", "lat"});
-        std::string longitude  = get_value(row, column_index, {"y", "lon"});
-        std::string altitude   = get_value(row, column_index, {"z", "altgps"});
-        std::string yaw        = get_value(row, column_index, {"omega", "yaw"});
-        std::string pitch      = get_value(row, column_index, {"phi", "pitch"});
-        std::string roll       = get_value(row, column_index, {"kappa", "roll"});
-        std::string time       = get_value(row, column_index, {"time"});
+        std::string image_name          = get_value(row, column_index, {"imagename", "file"});
+        std::string longitude           = get_value(row, column_index, {"x", "lon"});
+        std::string latitude            = get_value(row, column_index, {"y", "lat"});
+        std::string absolute_altitude   = get_value(row, column_index, {"altbaro"});
+        std::string relative_altitude   = get_value(row, column_index, {"z", "altgps"});
+        std::string yaw                 = get_value(row, column_index, {"omega", "yaw"});
+        std::string pitch               = get_value(row, column_index, {"phi", "pitch"});
+        std::string roll                = get_value(row, column_index, {"kappa", "roll"});
+        std::string time                = get_value(row, column_index, {"time"}); //YYYY-MM-DD HH:MM:SS
     
         if(image_name.empty())
         {
@@ -148,18 +153,31 @@ int main(int argc, char* argv[])
                 }
 
 
-                if (!altitude.empty())
+                if (!relative_altitude.empty())
                 {
                     // convert altitude before printing
-                    double altitude_float = std::stod(altitude);
-                    uint32_t i_alt = 1000.0 * altitude_float;
-                    std::ostringstream alt;
-                    alt << i_alt << "/1000";
+                    // double altitude_float = std::stod(relative_altitude);
+                    // uint32_t i_alt = 1000.0 * altitude_float;
+                    // std::ostringstream alt;
+                    // alt << i_alt << "/1000";
 
                     exifData["Exif.GPSInfo.GPSAltitudeRef"] = "0";
-                    exifData["Exif.GPSInfo.GPSAltitude"] = alt.str();
+                    exifData["Exif.GPSInfo.GPSAltitude"] = relative_altitude;//alt.str();
+
+                    xmpData["Xmp.drone-dji.RelativeAltitude"] = relative_altitude;//alt.str();
                 }
 
+                
+                if (!absolute_altitude.empty())
+                {
+                    // double altitude_float = std::stod(absolute_altitude);
+                    // uint32_t i_alt = 1000.0 * altitude_float;
+                    // std::ostringstream alt;
+                    // alt << i_alt << "/1000";
+
+                    xmpData["Xmp.drone-dji.AbsoluteAltitude"] = absolute_altitude; //alt.str();
+                }
+            
 
                 if (!yaw.empty())
                 {
@@ -181,7 +199,7 @@ int main(int argc, char* argv[])
 
                 if(!time.empty())
                 {
-                    // do nothing for now
+                    xmpData["Xmp.drone-dji.ModifyDate"] = time;
                 }
 
                 exifData["Exif.GPSInfo.GPSStatus"] = "A";
