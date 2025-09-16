@@ -50,12 +50,6 @@ std::string get_value(const std::vector<std::string> &row, int column_index)
     return {};
 }
 
-char transform_delimiter(std::string argv)
-{
-    
-}
-
-
 int main(int argc, char* argv[])
 {
     if (argc != 13)
@@ -204,13 +198,12 @@ int main(int argc, char* argv[])
                 if (!absolute_altitude.empty())
                 {
                     exifData["Exif.GPSInfo.GPSAltitude"] = absolute_altitude;
+                    xmpData["Xmp.drone-dji.AbsoluteAltitude"] = absolute_altitude;
                 }
 
                 if (!relative_altitude.empty())
                 {
                     exifData["Exif.GPSInfo.GPSAltitudeRef"] = "0";
-                    //TOMU PITAT
-                    //xmpData["Xmp.drone-dji.AbsoluteAltitude"] = absolute_altitude;
                     xmpData["Xmp.drone-dji.RelativeAltitude"] = relative_altitude;
                 }
             
