@@ -11,6 +11,10 @@
 #include <vector>
 #include <algorithm>
 
+/**
+ *  Splits the string to a given delimiter (',' or '\t' or ' ') and removes 
+ *  " \t\r\n" characters before and after the string.
+ */
 std::vector<std::string> split_csv(const std::string& line, char delimiter = ',')
 {
     std::vector<std::string> result;
@@ -28,42 +32,96 @@ std::vector<std::string> split_csv(const std::string& line, char delimiter = ','
     return result;
 }
 
-std::string get_value(const std::vector<std::string> &row,
-                      const std::unordered_map<std::string, size_t> &column_index,
-                      const std::vector<std::string> &keys)
+/**
+ *  Gets the value from the csv.
+ */
+std::string get_value(const std::vector<std::string> &row, int column_index)
 {
-    for (auto& k : keys)
+    if (column_index == -1)
     {
-        auto it = column_index.find(k);
-        if (it != column_index.end() && it->second < row.size())
-        {
-            return row[it->second];
-        }
+        return {};
     }
+    else if (column_index < row.size())
+    {
+        return row[column_index];   
+    }
+
+    std::cerr << "Index is larger than the size of the CSV row.\n";
     return {};
+}
+
+char transform_delimiter(std::string argv)
+{
+    
 }
 
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3)
+    if (argc != 13)
     {
-        std::cerr << "Example usage: <image_folder> <csv_file.csv>" << '\n';
+        std::cerr << "Example usage: <image_folder> <csv_file.csv> <delimiter> "
+                     "<image_name.jpg> <lon> <lat> <altBaro> <roll> <pitch> <yaw> <time> <altGPS>" 
+                     << '\n';
+
+        std::cerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                     "List of Variables:\n"
+                     "  <image_folder>   -> Folder with the images (.jpg)\n"
+                     "  <csv_file.csv>   -> CSV file containig metadata (.csv)\n"
+                     "  <delimiter>      -> Seperator between columns (',' or ' ' or '\t')\n"
+                     "  <image_name_jpg> -> Column index of the image filename in the CSV\n"
+                     "  <lon>            -> Column index of Longitude\n"
+                     "  <lat>            -> Column index of Latitude\n"
+                     "  <altBaro>        -> Column index of Relative Altitude\n"
+                     "  <roll>           -> Column index of Roll (Kappa)\n"
+                     "  <pitch>          -> Column index of Pitch (Phi)\n"
+                     "  <yaw>            -> Column index of Yaw (Omega)\n"
+                     "  <time>           -> Column index of Timestamp (YYYY-MM-DD HH:MM:SS)\n"
+                     "  <altGPS>         -> Column index of GPS Altitude\n\n";
+
+
+        std::cerr << "Notes:\n"
+                     "  - Use number 1-9 for column positions (1 = first column).\n"
+                     "  - Use -1 if a variable is not used or missing in the CSV.\n"
+                     "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
     }
 
+    std::string folder_path         = argv[1];
+    std::string csv_file_path       = argv[2];
+    /*
+        When passing '\t' to argv it doesnt recognize it as the actual "tab" and what is worse
+        it adds another \ to it for that reason we have to manualy transform the string 
+        into a char that will hold '\t'
+    */
+    char        delimiter           {};                  
+    if (argv[3][0] == '\\' && argv[3][1] == 't')
+    {
+        delimiter = '\t';
+    }
+    else
+    {
+        delimiter = argv[3][0];
+    }
+    
+    std::string image_name_argv     = argv[4];
+    std::string longitude_argv      = argv[5];
+    std::string latitude_argv       = argv[6];
+    std::string altitude_baro_argv  = argv[7];
+    std::string roll_argv           = argv[8];
+    std::string pitch_argv          = argv[9];
+    std::string yaw_argv            = argv[10];
+    std::string time_argv           = argv[11];
+    std::string altitude_gps_argv   = argv[12];
 
-    std::string folder_path = argv[1];       //"D:/Plesmo_Fotke";
-    std::string csv_file_path = argv[2];      //"D:/Plesmo_Fotke/CSV/KO_Plesmo_EVOSOPK.csv";
-
-    std::ifstream dataFile(csv_file_path);
-    if (!dataFile.is_open()) 
+    std::ifstream data_file(csv_file_path);
+    if (!data_file.is_open()) 
     {
         std::cerr << "Could not open file: " << csv_file_path << std::endl;
         return 1;
     }
 
     std::string header_line {};
-    if (!std::getline(dataFile, header_line))
+    if (!std::getline(data_file, header_line))
     {
         std::cerr << "CSV file is empty!\n";
         return 1;
@@ -73,36 +131,27 @@ int main(int argc, char* argv[])
     Exiv2::XmpProperties::registerNs("http://ns.drone-dji.com", "drone-dji");
     Exiv2::XmpProperties::registerNs("http://pix4d.com/camera/1.0", "Camera");
 
-    auto header_variables = split_csv(header_line, ',');
-    // This holds the names of variables that are in the header of the csv
-    // Example: file,	 lat,	 lon,	 altBaro,	 roll,	 pitch,	 yaw,	 time
-    std::unordered_map<std::string, size_t> column_index; 
-    for (size_t i = 0; i < header_variables.size(); i++)
+    std::string line {};
+    while (std::getline(data_file, line)) 
     {
-        std::string h = header_variables[i];
-        std::transform(h.begin(), h.end(), h.begin(), ::tolower);
-        column_index[h] = i;
-    }
-
-    std::string line;
-    while (std::getline(dataFile, line)) 
-    {
-        auto row = split_csv(line, ',');
+        auto row = split_csv(line, delimiter);
+   
         if(row.empty())
         {
             continue;
         }
-        
-        std::string image_name          = get_value(row, column_index, {"imagename", "file"});
-        std::string longitude           = get_value(row, column_index, {"x", "lon"});
-        std::string latitude            = get_value(row, column_index, {"y", "lat"});
-        std::string absolute_altitude   = get_value(row, column_index, {"altbaro"});
-        std::string relative_altitude   = get_value(row, column_index, {"z", "altgps"});
-        std::string yaw                 = get_value(row, column_index, {"omega", "yaw"});
-        std::string pitch               = get_value(row, column_index, {"phi", "pitch"});
-        std::string roll                = get_value(row, column_index, {"kappa", "roll"});
-        std::string time                = get_value(row, column_index, {"time"}); //YYYY-MM-DD HH:MM:SS
-    
+
+        // Subtract by one becuase none devs dont know arrays or strings start indexing from 0 not from 1
+        std::string image_name          = get_value(row, std::stoi(image_name_argv) - 1);
+        std::string longitude           = get_value(row, std::stoi(longitude_argv) - 1);
+        std::string latitude            = get_value(row, std::stoi(latitude_argv) - 1);
+        std::string absolute_altitude   = get_value(row, std::stoi(altitude_gps_argv) - 1);
+        std::string relative_altitude   = get_value(row, std::stoi(altitude_baro_argv) - 1);
+        std::string yaw                 = get_value(row, std::stoi(yaw_argv) - 1);
+        std::string pitch               = get_value(row, std::stoi(pitch_argv) - 1);
+        std::string roll                = get_value(row, std::stoi(roll_argv) - 1);
+        std::string time                = get_value(row, std::stoi(time_argv) - 1); //YYYY-MM-DD HH:MM:SS
+
         if(image_name.empty())
         {
             continue;
@@ -119,7 +168,23 @@ int main(int argc, char* argv[])
                 auto &exifData = image->exifData();
                 auto &xmpData  = image->xmpData();
 
-                // covert latitude before printing
+                if (!longitude.empty())
+                {
+                    // Convert longitude before printing
+                    double longitude_float = std::stod(longitude);
+                    uint32_t lon_deg = longitude_float;   // to int -> no decimal part
+                    double d_lon_min = 60.0 * (longitude_float - lon_deg);  // * decimal part
+                    uint32_t lon_min = d_lon_min;
+                    double d_lon_sec = 10000.0 * 60 * (d_lon_min - lon_min);
+                    uint32_t lon_sec = d_lon_sec;
+                    std::ostringstream lon;
+                    lon << lon_deg << "/1 " << lon_min << "/1 " << lon_sec << "/10000";
+
+                    exifData["Exif.GPSInfo.GPSLongitudeRef"] = "E";
+                    exifData["Exif.GPSInfo.GPSLongitude"] = lon.str();
+                }
+
+                // Convert latitude before printing
                 if (!latitude.empty())
                 {
                     double latitude_float = std::stod(latitude);
@@ -136,66 +201,33 @@ int main(int argc, char* argv[])
                     exifData["Exif.GPSInfo.GPSLatitude"] = lat.str();
                 }
 
-                if (!longitude.empty())
+                if (!absolute_altitude.empty())
                 {
-                    // convert longitude before printing
-                    double longitude_float = std::stod(longitude);
-                    uint32_t lon_deg = longitude_float;   // to int -> no decimal part
-                    double d_lon_min = 60.0 * (longitude_float - lon_deg);  // * decimal part
-                    uint32_t lon_min = d_lon_min;
-                    double d_lon_sec = 10000.0 * 60 * (d_lon_min - lon_min);
-                    uint32_t lon_sec = d_lon_sec;
-                    std::ostringstream lon;
-                    lon << lon_deg << "/1 " << lon_min << "/1 " << lon_sec << "/10000";
-
-                    exifData["Exif.GPSInfo.GPSLongitudeRef"] = "E";
-                    exifData["Exif.GPSInfo.GPSLongitude"] = lon.str();
+                    exifData["Exif.GPSInfo.GPSAltitude"] = absolute_altitude;
                 }
-
 
                 if (!relative_altitude.empty())
                 {
-                    // convert altitude before printing
-                    // double altitude_float = std::stod(relative_altitude);
-                    // uint32_t i_alt = 1000.0 * altitude_float;
-                    // std::ostringstream alt;
-                    // alt << i_alt << "/1000";
-
                     exifData["Exif.GPSInfo.GPSAltitudeRef"] = "0";
-                    exifData["Exif.GPSInfo.GPSAltitude"] = relative_altitude;//alt.str();
-
-                    xmpData["Xmp.drone-dji.RelativeAltitude"] = relative_altitude;//alt.str();
-                }
-
-                
-                if (!absolute_altitude.empty())
-                {
-                    // double altitude_float = std::stod(absolute_altitude);
-                    // uint32_t i_alt = 1000.0 * altitude_float;
-                    // std::ostringstream alt;
-                    // alt << i_alt << "/1000";
-
-                    xmpData["Xmp.drone-dji.AbsoluteAltitude"] = absolute_altitude; //alt.str();
+                    //TOMU PITAT
+                    //xmpData["Xmp.drone-dji.AbsoluteAltitude"] = absolute_altitude;
+                    xmpData["Xmp.drone-dji.RelativeAltitude"] = relative_altitude;
                 }
             
-
                 if (!yaw.empty())
                 {
                     xmpData["Xmp.drone-dji.GimbalYawDegree"] = yaw;
                 }
-
 
                 if (!pitch.empty())
                 {
                     xmpData["Xmp.drone-dji.GimbalPitchDegree"] = pitch; 
                 }
 
-
                 if(!roll.empty())
                 {
                     xmpData["Xmp.drone-dji.GimbalRollDegree"] = roll;
                 }
-
 
                 if(!time.empty())
                 {
