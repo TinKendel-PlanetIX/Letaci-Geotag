@@ -22,18 +22,18 @@ The program expects 13 arguments in total:
  - Geotag.exe <image_folder> <csv_file.csv> <delimiter> <image_name.jpg> <lon> <lat> <altBaro> <roll> <pitch> <yaw> <time> <altGPS>
 
 - Explanation of arguments:
- - <image_folder>   -> Folder with the images (.jpg)
- - <csv_file.csv>   -> CSV file containing metadata (.csv)
- - <delimiter>      -> Separator between columns (',' or ' ' or '\t')
- - <image_name_jpg> -> Column index of the image filename in the CSV
- - <lon>            -> Column index of Longitude
- - <lat>            -> Column index of Latitude
- - <altBaro>        -> Column index of Relative Altitude
- - <roll>           -> Column index of Roll (Kappa)
- - <pitch>          -> Column index of Pitch (Phi)
- - <yaw>            -> Column index of Yaw (Omega)
- - <time>           -> Column index of Timestamp (YYYY-MM-DD HH:MM:SS)
- - <altGPS>         -> Column index of GPS Altitude
+ - **image_folder**  -> Folder with the images (.jpg)
+ - **csv_file.csv**  -> CSV file containing metadata (.csv)
+ - **delimiter**     -> Separator between columns (',' or ' ' or '\t')
+ - **image_name_jpg**-> Column index of the image filename in the CSV
+ - **lon**           -> Column index of Longitude
+ - **lat**           -> Column index of Latitude
+ - **altBaro**       -> Column index of Relative Altitude
+ - **roll**          -> Column index of Roll (Kappa)
+ - **pitch**         -> Column index of Pitch (Phi)
+ - **yaw**           -> Column index of Yaw (Omega)
+ - **time**          -> Column index of Timestamp (YYYY-MM-DD HH:MM:SS)
+ - **altGPS**        -> Column index of GPS Altitude
 
 ---
 
