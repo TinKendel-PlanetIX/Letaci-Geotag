@@ -52,32 +52,34 @@ std::string get_value(const std::vector<std::string> &row, int column_index)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 13)
+    if (argc != 14)
     {
-        std::cerr << "Example usage: <image_folder> <csv_file.csv> <delimiter> "
+        std::cerr << "Example usage: <image_folder> <csv_file.csv> <delimiter> <pitch_down_correction> "
                      "<image_name.jpg> <lon> <lat> <altBaro> <roll> <pitch> <yaw> <time> <altGPS>" 
                      << '\n';
 
-        std::cerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-                     "List of Variables:\n"
-                     "  <image_folder>   -> Folder with the images (.jpg)\n"
-                     "  <csv_file.csv>   -> CSV file containing metadata (.csv)\n"
-                     "  <delimiter>      -> Separator between columns (',' or ' ' or '\t')\n"
-                     "  <image_name_jpg> -> Column index of the image filename in the CSV\n"
-                     "  <lon>            -> Column index of Longitude\n"
-                     "  <lat>            -> Column index of Latitude\n"
-                     "  <altBaro>        -> Column index of Relative Altitude\n"
-                     "  <roll>           -> Column index of Roll (Kappa)\n"
-                     "  <pitch>          -> Column index of Pitch (Phi)\n"
-                     "  <yaw>            -> Column index of Yaw (Omega)\n"
-                     "  <time>           -> Column index of Timestamp (YYYY-MM-DD HH:MM:SS)\n"
-                     "  <altGPS>         -> Column index of GPS Altitude\n\n";
+        std::cerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                     "List of Arguments:\n"
+                     "  <image_folder>          -> Folder with the images (.jpg)\n"
+                     "  <csv_file.csv>          -> CSV file containing metadata (.csv)\n"
+                     "  <delimiter>             -> Separator between columns (',' or ' ' or '\\t')\n"
+                     "  <pitch_down_correction> -> Value that subtracts from pitch angle (write positive number or 0 if not used)\n"
+                     "  <image_name_jpg>        -> Column index of the image filename in the CSV\n"
+                     "  <lon>                   -> Column index of Longitude\n"
+                     "  <lat>                   -> Column index of Latitude\n"
+                     "  <altBaro>               -> Column index of Relative Altitude\n"
+                     "  <roll>                  -> Column index of Roll (Kappa)\n"
+                     "  <pitch>                 -> Column index of Pitch (Phi)\n"
+                     "  <yaw>                   -> Column index of Yaw (Omega)\n"
+                     "  <time>                  -> Column index of Timestamp (YYYY-MM-DD HH:MM:SS)\n"
+                     "  <altGPS>                -> Column index of GPS Altitude\n\n";
 
 
         std::cerr << "Notes:\n"
                      "  - Use number 1-9 for column positions (1 = first column).\n"
                      "  - Use -1 if a variable is not used or missing in the CSV.\n"
-                     "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+                     "  - If pitch correction is not needed type 0.\n"
+                     "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
     }
 
     std::string folder_path         = argv[1];
@@ -96,16 +98,16 @@ int main(int argc, char* argv[])
     {
         delimiter = argv[3][0];
     }
-    
-    std::string image_name_argv     = argv[4];
-    std::string longitude_argv      = argv[5];
-    std::string latitude_argv       = argv[6];
-    std::string altitude_baro_argv  = argv[7];
-    std::string roll_argv           = argv[8];
-    std::string pitch_argv          = argv[9];
-    std::string yaw_argv            = argv[10];
-    std::string time_argv           = argv[11];
-    std::string altitude_gps_argv   = argv[12];
+    std::string degree              = argv[4];
+    std::string image_name_argv     = argv[5];
+    std::string longitude_argv      = argv[6];
+    std::string latitude_argv       = argv[7];
+    std::string altitude_baro_argv  = argv[8];
+    std::string roll_argv           = argv[9];
+    std::string pitch_argv          = argv[10];
+    std::string yaw_argv            = argv[11];
+    std::string time_argv           = argv[12];
+    std::string altitude_gps_argv   = argv[13];
 
     std::ifstream data_file(csv_file_path);
     if (!data_file.is_open()) 
@@ -139,15 +141,15 @@ int main(int argc, char* argv[])
         }
 
         // Subtract by one becuase none devs dont know arrays or strings start indexing from 0 not from 1
-        std::string image_name          = get_value(row, std::stoi(image_name_argv) - 1);
-        std::string longitude           = get_value(row, std::stoi(longitude_argv) - 1);
-        std::string latitude            = get_value(row, std::stoi(latitude_argv) - 1);
-        std::string absolute_altitude   = get_value(row, std::stoi(altitude_gps_argv) - 1);
-        std::string relative_altitude   = get_value(row, std::stoi(altitude_baro_argv) - 1);
-        std::string yaw                 = get_value(row, std::stoi(yaw_argv) - 1);
-        std::string pitch               = get_value(row, std::stoi(pitch_argv) - 1);
-        std::string roll                = get_value(row, std::stoi(roll_argv) - 1);
-        std::string time                = get_value(row, std::stoi(time_argv) - 1); //YYYY-MM-DD HH:MM:SS
+        std::string image_name          = get_value(row, std::stod(image_name_argv) - 1);
+        std::string longitude           = get_value(row, std::stod(longitude_argv) - 1);
+        std::string latitude            = get_value(row, std::stod(latitude_argv) - 1);
+        std::string absolute_altitude   = get_value(row, std::stod(altitude_gps_argv) - 1);
+        std::string relative_altitude   = get_value(row, std::stod(altitude_baro_argv) - 1);
+        std::string yaw                 = get_value(row, std::stod(yaw_argv) - 1);
+        std::string pitch               = get_value(row, std::stod(pitch_argv) - 1);
+        std::string roll                = get_value(row, std::stod(roll_argv) - 1);
+        std::string time                = get_value(row, std::stod(time_argv) - 1); //YYYY-MM-DD HH:MM:SS
 
         if(image_name.empty())
         {
@@ -217,7 +219,8 @@ int main(int argc, char* argv[])
 
                 if (!pitch.empty())
                 {
-                    xmpData["Xmp.drone-dji.GimbalPitchDegree"] = pitch; 
+                    double updated_pitch = std::stod(pitch) - std::stod(degree);
+                    xmpData["Xmp.drone-dji.GimbalPitchDegree"] = updated_pitch; 
                 }
 
                 if(!roll.empty())
