@@ -1,4 +1,4 @@
-#Geotag.exe – Command-Line Geotagging Tool
+# Geotag.exe – Command-Line Geotagging Tool
 
 **Geotag.exe** is a simple C++ terminal application for geotagging images using metadata from a CSV file.
 Built with Visual Studio Code and using Exiv2 as a third-party library.
@@ -41,8 +41,9 @@ The program expects 13 arguments in total:
 ## Column Index Rules
 - Column numbering starts at **1** (even though internally the program uses 0-based indexing).
 - If a variable is not used, set its argument to **-1**.
+  
 - **Example CSV**:
-- imageName,X,Y,Z,Omega,Phi,Kappa
+  - imageName,X,Y,Z,Omega,Phi,Kappa
 
 ---
 
