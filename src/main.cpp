@@ -46,7 +46,7 @@ std::string get_value(const std::vector<std::string> &row, int column_index)
         return row[column_index];   
     }
 
-    std::cerr << "Index is larger than the size of the CSV row.\n";
+    //std::cerr << "Index is larger than the size of the CSV row.\n";
     return {};
 }
 
@@ -124,6 +124,9 @@ int main(int argc, char* argv[])
     // Register namespaces
     Exiv2::XmpProperties::registerNs("http://ns.drone-dji.com", "drone-dji");
     Exiv2::XmpProperties::registerNs("http://pix4d.com/camera/1.0", "Camera");
+
+    int tagged_images_counter {0};
+    int total_number_of_images {0};
 
     std::string line {};
     while (std::getline(data_file, line)) 
@@ -235,14 +238,19 @@ int main(int argc, char* argv[])
                 image->setXmpData(xmpData);
                 image->writeMetadata();
 
+                total_number_of_images++;
+                tagged_images_counter++;
                 std::cout << "Successfully geotagged: " << image_path << std::endl;
             }
             catch (const std::exception& e) 
             {
+                total_number_of_images++;
                 std::cerr << "Error processing " << image_path << ": " << e.what() << std::endl;
             }
         }
     }
 
+    std::cout << "Successfully geotagged: " << tagged_images_counter << " / " 
+              << total_number_of_images << " images." << '\n';
     return 0;
 }
